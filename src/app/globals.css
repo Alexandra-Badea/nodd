@@ -15,7 +15,8 @@
   --color-pen-dark: #1b31c2;
   --color-pen-soft: #eef1ff;
   --color-marker: #ffe45c;
-  --color-paid: #109a4d;
+  --color-paid: #0c8040;
+  --color-paid-ink: #0a6a35;
   --color-paid-soft: #e4f5ea;
 
   --font-display: var(--font-funnel-display), ui-sans-serif, system-ui, sans-serif;
@@ -42,6 +43,11 @@
   }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
+  }
+  /* Past 1920px the whole page grows with the screen (to 22px a rem at about 2640px), so a big monitor
+     sees the same composition as a laptop instead of a narrow column. It starts from the visitor's own font size. */
+  @media (min-width: 1920px) {
+    html { font-size: min(calc(100% + (100vw - 1920px) * 0.00833), 137.5%); }
   }
   body {
     background: var(--color-paper);
@@ -103,4 +109,16 @@
   0% { transform: scale(1); }
   35% { transform: scale(0.8); }
   100% { transform: scale(1); }
+}
+
+/* The click: a ring of ink spreading from the cursor */
+@keyframes ripple {
+  from { transform: scale(0.3); opacity: 0.55; }
+  to { transform: scale(1.9); opacity: 0; }
+}
+
+/* A new price slides in when the billing period changes */
+@keyframes roll-in {
+  from { transform: translateY(0.45em); opacity: 0; }
+  to { transform: none; opacity: 1; }
 }
