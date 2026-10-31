@@ -34,6 +34,9 @@ export function HeroDemo() {
   const reduced = useReducedMotion();
   const [step, setStep] = useState(0);
   const [onScreen, setOnScreen] = useState(false);
+  // Anything that moves on its own for more than a few seconds gets a pause button (WCAG 2.2.2)
+  const [paused, setPaused] = useState(false);
+  const [ready, setReady] = useState(false);
   const s = reduced ? FINAL : step;
 
   const frame = useRef<HTMLDivElement>(null);
@@ -53,14 +56,32 @@ export function HeroDemo() {
   }, []);
 
   useEffect(() => {
-    if (reduced || !onScreen) return;
+    let idle = 0, t = 0;
+    const go = () => {
+      t = window.setTimeout(() => {
+        if (typeof window.requestIdleCallback === "function") idle = window.requestIdleCallback(() => setReady(true), { timeout: 2000 });
+        else t = window.setTimeout(() => setReady(true), 300);
+      }, 600);
+    };
+    if (document.readyState === "complete") go();
+    else window.addEventListener("load", go, { once: true });
+    return () => {
+      window.removeEventListener("load", go);
+      clearTimeout(t);
+      if (idle && typeof window.cancelIdleCallback === "function") window.cancelIdleCallback(idle);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (reduced || !onScreen || paused || !ready) return;
     const t = setTimeout(() => setStep((n) => (n + 1) % STEPS.length), STEPS[step]);
     return () => clearTimeout(t);
-  }, [step, onScreen, reduced]);
+  }, [step, onScreen, reduced, paused, ready]);
 
   // Scroll the proposal and move the cursor to whatever the client is about to touch
+  const placeRef = useRef<() => void>(() => {});
   useLayoutEffect(() => {
-    const place = () => {
+    placeRef.current = () => {
       const f = frame.current, c = content.current, cur = cursor.current;
       if (!f || !c || !cur) return;
       const scrolled = s >= 3 && s <= 8 && sign.current ? Math.max(0, Math.min(sign.current.offsetTop - 28, c.scrollHeight - f.clientHeight)) : 0;
@@ -79,11 +100,13 @@ export function HeroDemo() {
         : at(null, 0, 0);
       cur.style.transform = `translate(${x}px, ${y}px)`;
     };
-    place();
-    const ro = new ResizeObserver(place);
+    placeRef.current();
+  }, [s]);
+  useEffect(() => {
+    const ro = new ResizeObserver(() => placeRef.current());
     if (frame.current) ro.observe(frame.current);
     return () => ro.disconnect();
-  }, [s]);
+  }, []);
 
   const chosenB = s >= 2 && s <= 8;
   const signed = s >= 4 && s <= 8;
@@ -96,7 +119,7 @@ export function HeroDemo() {
   return (
     <div className="relative mx-auto w-full max-w-[36rem] lg:mx-0 lg:ml-auto">
       {/* the link the client was sent */}
-      <div className="mb-3 flex items-center justify-center gap-2">
+      <div className="relative mb-3 flex items-center justify-center gap-2">
         <span className="inline-flex items-center gap-2 rounded-full border border-line bg-sheet px-3.5 py-1.5 text-[0.82rem] text-ink-soft shadow-[0_1px_0_rgb(22_27_51/0.04)]">
           <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 text-paid" aria-hidden="true">
             <path d="M4.5 7V5a3.5 3.5 0 0 1 7 0v2" fill="none" stroke="currentColor" strokeWidth="1.6" />
@@ -104,6 +127,18 @@ export function HeroDemo() {
           </svg>
           nodd.link/<span className="font-medium text-ink">little-kettle</span>
         </span>
+        {!reduced && (
+          <button
+            type="button"
+            onClick={() => setPaused((p) => !p)}
+            className="absolute right-0 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full text-ink-soft transition-colors hover:bg-ink/[0.06] hover:text-ink"
+            aria-label={paused ? "Play the animation" : "Pause the animation"}
+          >
+            <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden="true">
+              {paused ? <path d="M5 3.5v9l7.5-4.5z" fill="currentColor" /> : <path d="M5 3.5v9M11 3.5v9" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />}
+            </svg>
+          </button>
+        )}
       </div>
 
       <div
@@ -112,7 +147,7 @@ export function HeroDemo() {
         role="img"
         aria-label="A Nodd proposal for Little Kettle Bakery. The client picks the second package, signs, and pays a £780 deposit; the freelancer is told straight away."
       >
-        <div ref={content} className={`relative px-6 pb-10 pt-6 transition-transform duration-[900ms] ease-[cubic-bezier(.65,0,.25,1)] sm:px-9 sm:pt-8 ${fading ? "opacity-0" : "opacity-100"} [transition-property:transform,opacity]`}>
+        <div ref={content} className={`relative px-6 pb-10 pt-6 will-change-transform transition-transform duration-[900ms] ease-[cubic-bezier(.65,0,.25,1)] sm:px-9 sm:pt-8 ${fading ? "opacity-0" : "opacity-100"} [transition-property:transform,opacity]`}>
           {/* letterhead */}
           <div className="flex items-center justify-between gap-4 text-[0.8rem]">
             <div className="flex items-center gap-2.5">
@@ -125,9 +160,9 @@ export function HeroDemo() {
             <span className="text-ink-faint">Proposal 024</span>
           </div>
 
-          <h3 className="mt-7 font-doc text-[1.75rem] leading-[1.12] font-medium tracking-[-0.01em] text-ink sm:text-[2rem]">
+          <p className="mt-7 font-doc text-[1.75rem] leading-[1.12] font-medium tracking-[-0.01em] text-ink text-balance sm:text-[2rem]">
             A new website for Little Kettle Bakery
-          </h3>
+          </p>
           <p className="mt-3 font-doc text-[1.02rem] leading-[1.6] text-ink-soft sm:text-[1.08rem]">
             Hannah, here&apos;s what we talked about on Tuesday: a site that shows today&apos;s bakes and <span className="marker text-ink">takes orders for collection</span>, so
             the phone stops ringing at 7am.
@@ -190,7 +225,7 @@ export function HeroDemo() {
 
           {/* the rubber stamp */}
           <div
-            className={`pointer-events-none absolute bottom-24 right-8 rotate-[-9deg] rounded-lg border-[2.5px] border-paid px-3 py-1 font-display text-[1.05rem] font-bold tracking-[-0.01em] text-paid transition-all duration-300 ease-[cubic-bezier(.3,1.6,.5,1)] ${paid ? "scale-100 opacity-90" : "scale-150 opacity-0"}`}
+            className={`pointer-events-none absolute bottom-24 right-8 rotate-[-9deg] rounded-lg border-[2.5px] border-paid px-3 py-1 font-display text-[1.05rem] font-bold tracking-[-0.01em] text-paid-ink transition-[transform,opacity] duration-300 ease-[cubic-bezier(.3,1.6,.5,1)] ${paid ? "scale-100 opacity-90" : "scale-150 opacity-0"}`}
             aria-hidden="true"
           >
             Deposit paid
@@ -198,7 +233,8 @@ export function HeroDemo() {
         </div>
 
         {/* the client's cursor */}
-        <div ref={cursor} className={`pointer-events-none absolute left-0 top-0 z-10 transition-transform duration-[850ms] ease-[cubic-bezier(.6,0,.25,1)] ${reduced ? "hidden" : ""}`} aria-hidden="true">
+        <div ref={cursor} className={`pointer-events-none absolute left-0 top-0 z-10 will-change-transform transition-transform duration-[850ms] ease-[cubic-bezier(.6,0,.25,1)] ${reduced ? "hidden" : ""}`} aria-hidden="true">
+          {pressing && <span key={`r${s}`} className="absolute -left-3.5 -top-3.5 h-7 w-7 rounded-full border-2 border-pen opacity-0 animate-[ripple_.65s_ease-out]" />}
           <div key={pressing ? `p${s}` : "idle"} className={pressing ? "animate-[press_.4s_ease-out]" : ""}>
             <svg viewBox="0 0 24 24" className="h-6 w-6 -translate-x-1 -translate-y-1 drop-shadow-[0_2px_3px_rgb(22_27_51/0.35)]">
               <path d="M5 3l14 7.5-6.2 1.6L10 18.5z" fill="#161b33" stroke="#fff" strokeWidth="1.4" strokeLinejoin="round" />
@@ -209,7 +245,7 @@ export function HeroDemo() {
 
       {/* what the freelancer sees, the moment it happens */}
       <div
-        className={`absolute -bottom-6 left-1/2 z-20 w-[min(21rem,calc(100%-1.5rem))] -translate-x-1/2 transition-all duration-500 ease-[cubic-bezier(.2,.9,.3,1.2)] sm:-left-8 sm:translate-x-0 lg:-left-14 ${told ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0"}`}
+        className={`absolute -bottom-6 left-1/2 z-20 w-[min(21rem,calc(100%-1.5rem))] -translate-x-1/2 will-change-transform transition-[transform,opacity] duration-500 ease-[cubic-bezier(.2,.9,.3,1.2)] sm:-left-8 sm:translate-x-0 lg:-left-14 ${told ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0"}`}
         aria-hidden="true"
       >
         <div className="flex items-start gap-3 rounded-2xl bg-sheet p-3.5 shadow-float">
