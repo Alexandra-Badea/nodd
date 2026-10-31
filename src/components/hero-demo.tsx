@@ -118,32 +118,35 @@ export function HeroDemo() {
 
   return (
     <div className="relative mx-auto w-full max-w-[36rem] lg:mx-0 lg:ml-auto">
-      {/* the link the client was sent */}
-      <div className="relative mb-3 flex items-center justify-center gap-2">
-        <span className="inline-flex items-center gap-2 rounded-full border border-line bg-sheet px-3.5 py-1.5 text-[0.82rem] text-ink-soft shadow-[0_1px_0_rgb(22_27_51/0.04)]">
-          <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 text-paid" aria-hidden="true">
-            <path d="M4.5 7V5a3.5 3.5 0 0 1 7 0v2" fill="none" stroke="currentColor" strokeWidth="1.6" />
-            <rect x="3" y="7" width="10" height="7.5" rx="2" fill="currentColor" />
-          </svg>
-          nodd.link/<span className="font-medium text-ink">little-kettle</span>
-        </span>
-        {!reduced && (
-          <button
-            type="button"
-            onClick={() => setPaused((p) => !p)}
-            className="absolute right-0 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full text-ink-soft transition-colors hover:bg-ink/[0.06] hover:text-ink"
-            aria-label={paused ? "Play the animation" : "Pause the animation"}
-          >
-            <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden="true">
-              {paused ? <path d="M5 3.5v9l7.5-4.5z" fill="currentColor" /> : <path d="M5 3.5v9M11 3.5v9" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />}
+      {/* a browser window: the page the client lands on when they open the link they were sent */}
+      <div className="overflow-hidden rounded-[18px] bg-sheet shadow-sheet ring-1 ring-ink/[0.06]">
+        <div className="flex items-center gap-2 border-b border-line bg-paper/70 px-3 py-2.5">
+          <span className="flex h-8 min-w-0 flex-1 items-center justify-center gap-2 rounded-lg bg-sheet px-3 text-[0.82rem] text-ink-soft ring-1 ring-line">
+            <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 shrink-0 text-paid" aria-hidden="true">
+              <path d="M4.5 7V5a3.5 3.5 0 0 1 7 0v2" fill="none" stroke="currentColor" strokeWidth="1.6" />
+              <rect x="3" y="7" width="10" height="7.5" rx="2" fill="currentColor" />
             </svg>
-          </button>
-        )}
-      </div>
+            <span className="truncate">
+              nodd.link/<span className="font-medium text-ink">little-kettle</span>
+            </span>
+          </span>
+          {!reduced && (
+            <button
+              type="button"
+              onClick={() => setPaused((p) => !p)}
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-ink-soft transition-colors hover:bg-ink/[0.06] hover:text-ink"
+              aria-label={paused ? "Play the animation" : "Pause the animation"}
+            >
+              <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden="true">
+                {paused ? <path d="M5 3.5v9l7.5-4.5z" fill="currentColor" /> : <path d="M5 3.5v9M11 3.5v9" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />}
+              </svg>
+            </button>
+          )}
+        </div>
 
       <div
         ref={frame}
-        className="relative h-[30rem] overflow-hidden rounded-[18px] bg-sheet shadow-sheet ring-1 ring-ink/[0.06] sm:h-[33rem]"
+        className="relative h-[27.5rem] overflow-hidden sm:h-[30.5rem]"
         role="img"
         aria-label="A Nodd proposal for Little Kettle Bakery. The client picks the second package, signs, and pays a £780 deposit; the freelancer is told straight away."
       >
@@ -241,6 +244,7 @@ export function HeroDemo() {
             </svg>
           </div>
         </div>
+      </div>
       </div>
 
       {/* what the freelancer sees, the moment it happens */}
