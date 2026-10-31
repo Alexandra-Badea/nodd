@@ -29,6 +29,7 @@ const plans = [
 
 export function Pricing() {
   const [yearly, setYearly] = useState(false);
+  const [switched, setSwitched] = useState(false);
 
   return (
     <section id="pricing" aria-labelledby="pricing-title" className="border-t border-line bg-sheet py-24 sm:py-32">
@@ -43,7 +44,10 @@ export function Pricing() {
                 key={String(y)}
                 type="button"
                 aria-pressed={yearly === y}
-                onClick={() => setYearly(y)}
+                onClick={() => {
+                  setYearly(y);
+                  setSwitched(true);
+                }}
                 className={`h-10 whitespace-nowrap rounded-[9px] px-4 text-[0.95rem] font-semibold transition-colors ${yearly === y ? "bg-sheet text-ink shadow-[0_1px_3px_rgb(22_27_51/0.12)]" : "text-ink-soft hover:text-ink"}`}
               >
                 {y ? "Yearly, 2 months free" : "Monthly"}
@@ -64,7 +68,13 @@ export function Pricing() {
                 </div>
                 <p className="mt-2 text-[0.98rem] text-ink-soft">{p.who}</p>
                 <p className="mt-6 flex items-baseline gap-1.5">
-                  <span className="font-display text-[3rem] leading-none font-semibold tracking-[-0.04em] tabular-nums">£{price}</span>
+                  {/* after a switch, the new price slides in */}
+                  <span
+                    key={switched ? `${p.name}-${price}` : p.name}
+                    className={`inline-block font-display text-[3rem] leading-none font-semibold tracking-[-0.04em] tabular-nums ${switched ? "animate-[roll-in_.35s_cubic-bezier(.2,.8,.2,1)] motion-reduce:animate-none" : ""}`}
+                  >
+                    £{price}
+                  </span>
                   <span className="text-[0.95rem] text-ink-soft">{price === 0 ? "forever" : yearly ? "a month, billed yearly" : "a month"}</span>
                 </p>
                 <ul className="mt-6 flex-1 space-y-2.5 text-[0.98rem]">
