@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "./logo";
+import { MobileMenu } from "./mobile-menu";
 
 const links = [
   { href: "/#how", label: "How it works" },
@@ -10,7 +11,7 @@ const links = [
 export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-line/80 bg-paper/85 backdrop-blur-md supports-[backdrop-filter]:bg-paper/70">
-      <div className="wrap flex h-16 items-center gap-6">
+      <div className="wrap flex h-16 items-center gap-2 md:gap-6">
         <Link href="/" className="mr-auto rounded-md" aria-label="Nodd, home">
           <Logo />
         </Link>
@@ -28,6 +29,7 @@ export function Header() {
         <Link href="/#start" className="inline-flex h-10 items-center whitespace-nowrap rounded-[10px] bg-ink px-4 text-[0.95rem] font-semibold text-white transition-colors hover:bg-pen">
           Start free
         </Link>
+        <MobileMenu links={links} />
       </div>
     </header>
   );
