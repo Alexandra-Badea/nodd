@@ -2,33 +2,42 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
-const steps = [
+type Shot = (props: { on: boolean }) => ReactNode;
+
+const steps: { title: string; body: string; Shot: Shot }[] = [
   {
     title: "Write it once",
     body: "Start from a template or your last proposal. Add the scope, the timeline and up to three packages, and set how much deposit you want up front.",
-    shot: <EditorShot />,
+    Shot: EditorShot,
   },
   {
     title: "Send one link",
     body: "Your client opens it on any phone or laptop, with no account and nothing to download. You see when they open it and which part they spend time on.",
-    shot: <ActivityShot />,
+    Shot: ActivityShot,
   },
   {
     title: "Get the nod",
     body: "They choose a package, sign with a finger or a mouse, and pay the deposit by card, Apple Pay or bank transfer. The money goes straight to your Stripe account.",
-    shot: <PaidShot />,
+    Shot: PaidShot,
   },
 ];
 
 export function HowItWorks() {
   const [active, setActive] = useState(0);
+  // each picture plays its moment the first time its step reaches the middle of the screen, then stays put
+  const [seen, setSeen] = useState([false, false, false]);
   const refs = useRef<(HTMLLIElement | null)[]>([]);
 
   // The step in the middle of the screen is the one the picture shows
   useEffect(() => {
     const io = new IntersectionObserver(
       (entries) => {
-        for (const e of entries) if (e.isIntersecting) setActive(Number((e.target as HTMLElement).dataset.i));
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          const i = Number((e.target as HTMLElement).dataset.i);
+          setActive(i);
+          setSeen((v) => (v[i] ? v : v.map((x, j) => x || j === i)));
+        }
       },
       { rootMargin: "-45% 0px -45% 0px" },
     );
@@ -65,7 +74,9 @@ export function HowItWorks() {
                   <p className="mt-3 max-w-[28rem] text-ink-soft">{s.body}</p>
                   {/* on phones and tablets, each step carries its own picture */}
                   <div className="mt-8 lg:hidden" aria-hidden="true">
-                    <Frame>{s.shot}</Frame>
+                    <Frame>
+                      <s.Shot on={seen[i]} />
+                    </Frame>
                   </div>
                 </div>
               </li>
@@ -74,14 +85,16 @@ export function HowItWorks() {
 
           {/* on large screens, one picture stays put and changes with the step */}
           <div className="hidden lg:block" aria-hidden="true">
-            <div className="sticky top-[calc(50vh-15rem)]">
-              <div className="relative h-[30rem]">
+            <div className="sticky top-[max(5.5rem,calc(50vh-15rem))]">
+              <div className="relative h-[min(30rem,calc(100vh-7rem))]">
                 {steps.map((s, i) => (
                   <div
                     key={s.title}
                     className={`absolute inset-0 transition-all duration-500 ease-[cubic-bezier(.3,0,.2,1)] motion-reduce:transition-none ${active === i ? "translate-y-0 opacity-100" : i < active ? "-translate-y-4 opacity-0" : "translate-y-4 opacity-0"}`}
                   >
-                    <Frame>{s.shot}</Frame>
+                    <Frame className="h-full">
+                      <s.Shot on={seen[i]} />
+                    </Frame>
                   </div>
                 ))}
               </div>
@@ -97,12 +110,15 @@ export function HowItWorks() {
   );
 }
 
-function Frame({ children }: { children: ReactNode }) {
-  return <div className="h-[26rem] overflow-hidden rounded-[18px] bg-sheet shadow-sheet ring-1 ring-ink/[0.06] sm:h-[30rem]">{children}</div>;
+function Frame({ children, className = "h-[26rem] sm:h-[30rem]" }: { children: ReactNode; className?: string }) {
+  return <div className={`overflow-hidden rounded-[18px] bg-sheet shadow-sheet ring-1 ring-ink/[0.06] ${className}`}>{children}</div>;
 }
 
+/* the in-picture moments: quick, once, and instant for anyone who has turned motion off */
+const ease = "transition-all duration-500 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none";
+
 function Bar({ title, badge, tone = "ink" }: { title: string; badge: string; tone?: "ink" | "pen" | "paid" }) {
-  const tones = { ink: "bg-ink/[0.06] text-ink-soft", pen: "bg-pen-soft text-pen", paid: "bg-paid-soft text-paid" };
+  const tones = { ink: "bg-ink/[0.06] text-ink-soft", pen: "bg-pen-soft text-pen", paid: "bg-paid-soft text-paid-ink" };
   return (
     <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4 sm:px-6">
       <span className="truncate font-semibold text-ink">{title}</span>
@@ -112,24 +128,24 @@ function Bar({ title, badge, tone = "ink" }: { title: string; badge: string; ton
 }
 
 /* 1. The proposal being put together from blocks */
-function EditorShot() {
+function EditorShot({ on }: { on: boolean }) {
   const blocks = ["Intro", "Scope", "Packages", "Timeline", "Terms", "Sign and pay deposit"];
   return (
     <div className="flex h-full flex-col text-[0.9rem]">
       <Bar title="Little Kettle Bakery" badge="Draft" />
       <div className="flex-1 space-y-2 px-5 py-5 sm:px-6">
         {blocks.map((b) => {
-          const lifted = b === "Packages";
+          const lifted = b === "Packages" && on;
           return (
             <div
               key={b}
-              className={`flex items-center gap-3 rounded-[10px] border px-3.5 py-2.5 ${lifted ? "relative z-10 -mx-1 rotate-[-1.2deg] border-pen bg-sheet shadow-float" : "border-line bg-paper/60"}`}
+              className={`flex items-center gap-3 rounded-[10px] border px-3.5 py-2.5 ${ease} delay-200 ${lifted ? "relative z-10 -mx-1 rotate-[-1.2deg] border-pen bg-sheet shadow-float" : "border-line bg-paper/60"}`}
             >
               <svg viewBox="0 0 10 16" className={`h-3.5 w-2.5 shrink-0 ${lifted ? "text-pen" : "text-ink-faint"}`}>
                 {[2, 8, 14].map((y) => [2.5, 7.5].map((x) => <circle key={`${x}${y}`} cx={x} cy={y} r="1.3" fill="currentColor" />))}
               </svg>
               <span className={`flex-1 ${lifted ? "font-semibold text-ink" : "text-ink-soft"}`}>{b}</span>
-              {lifted && <span className="text-[0.75rem] text-pen">2 options</span>}
+              {b === "Packages" && <span className={`text-[0.75rem] text-pen ${ease} delay-500 ${on ? "opacity-100" : "opacity-0"}`}>2 options</span>}
               {b === "Sign and pay deposit" && <span className="text-[0.75rem] text-ink-faint">30%</span>}
             </div>
           );
@@ -148,7 +164,7 @@ function EditorShot() {
 }
 
 /* 2. What the freelancer sees after sending */
-function ActivityShot() {
+function ActivityShot({ on }: { on: boolean }) {
   const feed = [
     { what: "Sent to Hannah", when: "10:02" },
     { what: "Opened on an iPhone", when: "10:41" },
@@ -160,8 +176,12 @@ function ActivityShot() {
     <div className="flex h-full flex-col text-[0.9rem]">
       <Bar title="Little Kettle Bakery" badge="Opened 3 times" tone="pen" />
       <ul className="flex-1 px-5 py-3 sm:px-6">
-        {feed.map((f) => (
-          <li key={f.what} className="flex items-start gap-3 border-b border-line/70 py-3.5 last:border-0">
+        {feed.map((f, i) => (
+          <li
+            key={f.what}
+            className={`flex items-start gap-3 border-b border-line/70 py-3.5 last:border-0 ${ease} ${on ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}
+            style={{ transitionDelay: on ? `${150 + i * 170}ms` : "0ms" }}
+          >
             <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${f.live ? "bg-paid ring-4 ring-paid/15" : "bg-ink/20"}`} />
             <span className="flex-1">
               <span className={f.live ? "font-semibold text-ink" : "text-ink-soft"}>{f.what}</span>
@@ -182,19 +202,19 @@ function ActivityShot() {
 }
 
 /* 3. Signed, paid, and the rest already lined up */
-function PaidShot() {
+function PaidShot({ on }: { on: boolean }) {
   return (
     <div className="flex h-full flex-col text-[0.9rem]">
       <Bar title="Little Kettle Bakery" badge="Signed and paid" tone="paid" />
       <div className="flex-1 space-y-3 px-5 py-5 sm:px-6">
-        <Row icon="sign" title="Signed by Hannah Reid" detail="Monday at 18:08, from a laptop in Bristol" />
-        <Row icon="paid" title="£780 deposit paid by card" detail="Monday at 18:09" strong />
-        <Row icon="bank" title="Payout to your bank" detail="Thursday, on Stripe's usual schedule" />
-        <div className="mt-2 rounded-xl border border-dashed border-ink/20 p-4">
+        <Row icon="sign" title="Signed by Hannah Reid" detail="Monday at 18:08, from a laptop in Bristol" on={on} delay={150} />
+        <Row icon="paid" title="£780 deposit paid by card" detail="Monday at 18:09" strong on={on} delay={550} />
+        <Row icon="bank" title="Payout to your bank" detail="Thursday, on Stripe's usual schedule" on={on} delay={950} />
+        <div className={`mt-2 rounded-xl border border-dashed border-ink/20 p-4 ${ease} ${on ? "opacity-100" : "opacity-0"}`} style={{ transitionDelay: on ? "1250ms" : "0ms" }}>
           <div className="flex items-center justify-between gap-3">
             <span className="font-semibold text-ink">Final invoice, £1,820</span>
-            <span className="relative h-5 w-9 shrink-0 rounded-full bg-pen" aria-hidden="true">
-              <span className="absolute right-0.5 top-0.5 h-4 w-4 rounded-full bg-white" />
+            <span className={`relative h-5 w-9 shrink-0 rounded-full ${ease} ${on ? "bg-pen" : "bg-ink/20"}`} style={{ transitionDelay: on ? "1650ms" : "0ms" }} aria-hidden="true">
+              <span className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white ${ease} ${on ? "translate-x-4" : ""}`} style={{ transitionDelay: on ? "1650ms" : "0ms" }} />
             </span>
           </div>
           <p className="mt-1 text-[0.82rem] text-ink-soft">Sends when you mark the work done</p>
@@ -204,15 +224,18 @@ function PaidShot() {
   );
 }
 
-function Row({ icon, title, detail, strong }: { icon: "sign" | "paid" | "bank"; title: string; detail: string; strong?: boolean }) {
+function Row({ icon, title, detail, strong, on, delay }: { icon: "sign" | "paid" | "bank"; title: string; detail: string; strong?: boolean; on: boolean; delay: number }) {
   const paths = {
     sign: <path d="M3 13c2-4 4-8 5-6s-3 6-1 6 3-4 5-3 0 3 2 3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />,
     paid: <path d="M4 9.5l3 3 6.5-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
     bank: <path d="M2.5 7.5L9 3.5l6.5 4M4 8v5M9 8v5M14 8v5M2.5 14.5h13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />,
   };
   return (
-    <div className={`flex items-center gap-3.5 rounded-xl p-3.5 ${strong ? "bg-paid-soft" : "bg-paper/70"}`}>
-      <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-[10px] ${strong ? "bg-paid text-white" : "bg-sheet text-pen ring-1 ring-line"}`}>
+    <div
+      className={`flex items-center gap-3.5 rounded-xl p-3.5 ${ease} ${on ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"} ${strong && on ? "bg-paid-soft" : "bg-paper/70"}`}
+      style={{ transitionDelay: on ? `${delay}ms` : "0ms" }}
+    >
+      <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-[10px] ${ease} ${strong && on ? "bg-paid text-white" : "bg-sheet text-pen ring-1 ring-line"}`} style={{ transitionDelay: on ? `${delay + 250}ms` : "0ms" }}>
         <svg viewBox="0 0 18 18" className="h-[18px] w-[18px]">
           {paths[icon]}
         </svg>
