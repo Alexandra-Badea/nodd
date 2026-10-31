@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+/*
+ * Nodd's palette is stationery, not "SaaS blue": cool paper, iron-gall ink, a blue signing pen,
+ * a highlighter for marks on documents and green only for money that has landed.
+ */
+@theme {
+  --color-paper: #f6f7f9;
+  --color-sheet: #ffffff;
+  --color-ink: #161b33;
+  --color-ink-soft: #565d78;
+  --color-ink-faint: #646b85;
+  --color-line: #e2e5ec;
+  --color-pen: #2846f0;
+  --color-pen-dark: #1b31c2;
+  --color-pen-soft: #eef1ff;
+  --color-marker: #ffe45c;
+  --color-paid: #109a4d;
+  --color-paid-soft: #e4f5ea;
+
+  --font-display: var(--font-funnel-display), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-funnel-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-doc: var(--font-newsreader), "Iowan Old Style", Georgia, serif;
+
+  --shadow-sheet: 0 1px 0 rgb(22 27 51 / 0.04), 0 30px 60px -36px rgb(22 27 51 / 0.32);
+  --shadow-float: 0 18px 40px -18px rgb(22 27 51 / 0.38), 0 0 0 1px rgb(22 27 51 / 0.06);
+
+  --animate-nod: nod 0.9s cubic-bezier(0.45, 0, 0.3, 1);
+  @keyframes nod {
+    0%, 100% { transform: rotate(0) translateY(0); }
+    30% { transform: rotate(8deg) translateY(1.5px); }
+    55% { transform: rotate(-2deg) translateY(-0.5px); }
+    75% { transform: rotate(5deg) translateY(1px); }
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  @media (min-width: 640px) {
+    body { font-size: 1.125rem; }
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 620;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+  p { text-wrap: pretty; }
+  ::selection { background: var(--color-marker); color: var(--color-ink); }
+  :focus-visible {
+    outline: 2.5px solid var(--color-pen);
+    outline-offset: 3px;
+    border-radius: 8px;
+  }
+  section[id] { scroll-margin-top: 5rem; }
+}
+
+@layer components {
+  .wrap {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 74rem;
+    padding-inline: max(1.25rem, env(safe-area-inset-left));
+  }
+  @media (min-width: 640px) {
+    .wrap { padding-inline: 2rem; }
+  }
+
+  /* A highlighter stroke, the way you'd mark the line that matters on a printed proposal */
+  .marker {
+    background-image: linear-gradient(transparent 52%, var(--color-marker) 52%, var(--color-marker) 90%, transparent 90%);
+    padding-inline: 0.08em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  /* Faint ruled lines, like a pad of paper, behind the opening */
+  .ruled {
+    background-image: repeating-linear-gradient(to bottom, transparent 0 39px, rgb(22 27 51 / 0.055) 39px 40px);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 60%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 60%, transparent);
+  }
+}
+
+/* The cursor presses down when the client clicks */
+@keyframes press {
+  0% { transform: scale(1); }
+  35% { transform: scale(0.8); }
+  100% { transform: scale(1); }
+}
