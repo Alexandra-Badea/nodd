@@ -10,9 +10,9 @@ A landing page for Nodd, a proposal tool for freelancers and small studios: one 
 
 ## What's on the page
 
-- **A live proposal in the opening.** Built in code, not a screenshot: the client picks the bigger package, the deposit updates, the signature is drawn in ink, the deposit is paid and the freelancer gets told. It plays only while it's on screen, and for anyone who has turned motion off it shows the finished, paid proposal instead.
+- **A live proposal in the opening.** Built in code, not a screenshot: the client picks the bigger package, the deposit updates, the signature is drawn in ink, the deposit is paid and the freelancer gets told. It starts once the page has loaded, plays only while it's on screen, and has a pause button. For anyone who has turned motion off it shows the finished, paid proposal instead.
 - **The usual way next to Nodd,** told as a week of emails rather than statistics.
-- **How it works** in three steps. On large screens the product picture stays put and changes as you scroll; on phones each step carries its own.
+- **How it works** in three steps. On large screens the product picture stays put and changes as you scroll; on phones each step carries its own. Each picture plays its moment the first time you reach it: the block moving into place, the activity arriving, the deposit turning green.
 - **The details,** pricing with a monthly and yearly switch, questions, and a closing sign-up.
 - **A not-found page** in the same style.
 
@@ -28,7 +28,8 @@ There is one moving centrepiece, the proposal in the opening. Everything else mo
 
 ## Checked
 
-- Every width from 320px to 2560px, phones held either way, with no sideways scrolling, clipped text or phones zooming out.
+- Every width from 320px to 2560px and 18 real device sizes, phones held either way, with no sideways scrolling, clipped text or phones zooming out. Past 1920px the page scales up, so big monitors see the same composition as a laptop.
+- Lighthouse on a phone: performance 95+, accessibility 100, best practices 100. On desktop: 100 for all three. (SEO scores lower on purpose: the page asks search engines not to index a made-up product.)
 - Keyboard focus is always visible, colours pass contrast for their text sizes, and the page works with motion turned off.
 
 ## Run it
