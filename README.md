@@ -67,6 +67,6 @@ src/
   fonts/               self-hosted fonts and their licence
 ```
 
-## Licence
+## Copyright
 
-MIT. The fonts (Funnel Display, Funnel Sans and Newsreader) are under the SIL Open Font License; see `src/fonts/OFL.txt`.
+© 2026 Alexandra Badea. All rights reserved: the code is public to read, but please ask before reusing it. The fonts (Funnel Display, Funnel Sans and Newsreader) are under the SIL Open Font License; see `src/fonts/OFL.txt`.
