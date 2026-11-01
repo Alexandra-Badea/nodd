@@ -2,6 +2,8 @@
 
 A landing page for Nodd, a proposal tool for freelancers and small studios: one link where the client reads the proposal, picks a package, signs and pays the deposit. Built with Next.js and Tailwind CSS.
 
+**Live:** [nodd-bay.vercel.app](https://nodd-bay.vercel.app/)
+
 ![The opening of the page](docs/hero.webp)
 
 > Nodd is a made-up product. The page is real: the sign-up form checks the email and then says plainly that nothing was saved, and the page asks search engines not to index it.
